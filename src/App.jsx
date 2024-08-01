@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.scss';
 
 import usersFromServer from './api/users';
@@ -6,48 +6,9 @@ import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
 
 export const App = () => {
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
-
-  useEffect(() => {
-    const productsWithDetails = productsFromServer.map(product => {
-      const category = categoriesFromServer.find(
-        cat => cat.id === product.categoryId,
-      );
-      const owner = usersFromServer.find(user => user.id === category.ownerId);
-
-      return {
-        ...product,
-        category,
-        owner,
-      };
-    });
-
-    setProducts(productsWithDetails);
-    setFilteredProducts(productsWithDetails);
-  }, []);
-
-  useEffect(() => {
-    const filtered = products.filter(product => {
-      const matchesUser = selectedUser
-        ? product.owner.id === selectedUser
-        : true;
-      const matchesSearch = product.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        selectedCategories.length > 0
-          ? selectedCategories.includes(product.category.id)
-          : true;
-
-      return matchesUser && matchesSearch && matchesCategory;
-    });
-
-    setFilteredProducts(filtered);
-  }, [selectedUser, searchQuery, selectedCategories, products]);
 
   const handleCategoryClick = categoryId => {
     setSelectedCategories(prevSelected => {
@@ -64,6 +25,32 @@ export const App = () => {
     setSearchQuery('');
     setSelectedCategories([]);
   };
+
+  const productsWithDetails = productsFromServer.map(product => {
+    const category = categoriesFromServer.find(
+      cat => cat.id === product.categoryId,
+    );
+    const owner = usersFromServer.find(user => user.id === category.ownerId);
+
+    return {
+      ...product,
+      category,
+      owner,
+    };
+  });
+
+  const filteredProducts = productsWithDetails.filter(product => {
+    const matchesUser = selectedUser ? product.owner.id === selectedUser : true;
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategories.length > 0
+        ? selectedCategories.includes(product.category.id)
+        : true;
+
+    return matchesUser && matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="section">
